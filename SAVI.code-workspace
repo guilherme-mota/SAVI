@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../savi_22-23"
 		}
 	],
 	"settings": {}
