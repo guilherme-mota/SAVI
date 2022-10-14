@@ -5,6 +5,7 @@ from sys import flags
 import cv2
 import csv
 import numpy as np
+from functions import Detection, Tracker
 
 def main():
     # ------------------------------------------
@@ -37,7 +38,9 @@ def main():
     # Create the colors for each person
     colors = np.random.randint(0, high=255, size=(number_of_persons, 3), dtype=int)
 
-    person_detector = cv2.CascadeClassifier('haarcascade_fullbody.xml')
+    person_detector = cv2.CascadeClassifier('/home/guilherme/workingcopy/opencv-4.5.4/data/haarcascades/haarcascade_fullbody.xml')
+
+    detection_counter = 0
 
     # ------------------------------------------
     # Execution
@@ -52,41 +55,31 @@ def main():
             break
 
         # ------------------------------------------
-        # Draw ground truth bboxes
-        # ------------------------------------------
-        # file = open('/home/guilherme/savi_22-23/Parte04/docs/OxfordTownCentre/TownCentre-groundtruth.top')
-        # csv_reader = csv.reader(file)  # Read CSV file with ground truth bboxes
-        # for row in csv_reader:
-            
-        #     if len(row) != 12:  # skip badly formated rows
-        #         continue
-
-        #     person_number, frame_number, _, _, _, _, _, _, body_left, body_top, body_right, body_bottom = row
-        #     person_number = int(person_number) # convert to number format (integer)
-        #     frame_number = int(frame_number)
-        #     body_left = int(float(body_left))
-        #     body_right = int(float(body_right))
-        #     body_top = int(float(body_top))
-        #     body_bottom = int(float(body_bottom))
-
-        #     if frame_counter != frame_number: # do not draw bbox of other frames
-        #         continue
-
-        #     x1 = body_left
-        #     y1 = body_top
-        #     x2 = body_right
-        #     y2 = body_bottom
-        #     color = colors[person_number,:]
-
-        #     cv2.rectangle(image_gui, (x1, y1), (x2, y2), (int(color[0]), int(color[1]), int(color[2])), 3)
-
-        #     print('person ' + str(person_number) + ' frame ' + str(frame_number))
-
-        # ------------------------------------------
         # Detection of persons 
         # ------------------------------------------
         bboxes = person_detector.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=4, minSize=(20,40))
         print(bboxes)
+
+        # ------------------------------------------
+        # Create detections per haard cascade bbox
+        # ------------------------------------------
+        detections = []
+        for bbox in bboxes:
+            x1, y1, w, h = bbox
+            detection = Detection(x1, y1, w, h, image_gray, detection_counter)
+            detection_counter += 1
+            detection.draw(image_gui)
+            detections.append(detection)
+            # cv2.imshow('detection' + str(detection.id), detection.image)
+
+        # ------------------------------------------
+        # Create tracker foreach detection
+        # ------------------------------------------
+        traker_counter = 0
+        for detection in detections:
+            tracker = Tracker(detection, traker_counter)
+            traker_counter += 1
+            tracker.draw(image_gui)
 
         # Display Image Capture with BBoxes
         cv2.imshow(window_name, image_gui)
