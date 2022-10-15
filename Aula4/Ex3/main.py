@@ -52,7 +52,7 @@ def main():
     # ------------------------------------------
     # Execution
     # ------------------------------------------
-    while capture.isOpened():  # loop through all frames whil
+    while capture.isOpened():  # loop through all frames
         ret, image_original = capture.read()  # get a frame, ret will be true or false if getting succeeds
         image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
         image_gui = deepcopy(image_original)  # image for graphical user interface
