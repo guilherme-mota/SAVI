@@ -81,23 +81,23 @@ def main():
         # ------------------------------------------------------------------------------------
         # For each detection, see if there is a tracker to wich it should be associated
         # ------------------------------------------------------------------------------------
+        for detection in detections:  # cycle all detections
+            for tracker in trackers:  # cycle all trackers
+                tracker_bbox = tracker.detections[-1]
+                iou = detection.computeIOU(tracker_bbox)
+                print('IOU( T' + str(tracker.id) + ' D' + str(detection.id) + ' ) = ' + str(iou))
+
+                if iou > iou_threshold:  # associate detection with tracker
+                    tracker.addDetection(detection)
+
+        # ------------------------------------------
+        # Create tracker foreach detection at first cycle
+        # ------------------------------------------
         if frame_counter == 0:
             for detection in detections:  # cycle all detections
-                for tracker in trackers:  # cycle all trackers
-                    tracker_bbox = tracker.detections[-1]
-                    iou = detection.computeIOU(tracker_bbox)
-                    print('IOU( T' + str(tracker.id) + ' D' + str(detection.id) + ' ) = ' + str(iou))
-
-                    if iou > iou_threshold:  # associate detection with tracker
-                        tracker.addDetection(detection)
-
-        # ------------------------------------------
-        # Create tracker foreach detection
-        # ------------------------------------------
-        for detection in detections:  # cycle all detections
-            tracker = Tracker(detection, traker_counter)
-            traker_counter += 1
-            trackers.append(tracker)
+                tracker = Tracker(detection, traker_counter)
+                traker_counter += 1
+                trackers.append(tracker)
 
         # ------------------------------------------
         # Draw stuff
