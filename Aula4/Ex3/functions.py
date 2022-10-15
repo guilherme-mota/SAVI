@@ -7,9 +7,24 @@ class BoundingBox:
         self.y1 = y1
         self.w = w
         self.h = h
+        self.area = w * h
 
         self.x2 = self.x1 + self.w
         self.y2 = self.y1 + self.h
+
+    def computeIOU(self, bbox2):
+        x1_intr = min(self.x1, bbox2.x1)
+        y1_intr = min(self.y1, bbox2.y1)
+        x2_intr = max(self.x2, bbox2.x2)
+        y2_intr = max(self.y2, bbox2.y2)
+
+        w_intr = x2_intr - x1_intr
+        h_intr = y2_intr - y1_intr
+        A_intr = w_intr * h_intr
+
+        A_union = self.area + bbox2.area - A_intr
+
+        return A_intr/A_union
 
 class Detection(BoundingBox):
 
@@ -37,3 +52,12 @@ class Tracker():
         cv2.rectangle(image_gui, (last_detection.x1, last_detection.y1), (last_detection.x2, last_detection.y2), color, 3)
 
         cv2.putText(image_gui, 'T' + str(self.id), (last_detection.x2 - 40, last_detection.y1), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+
+    def addDetection(self, detection):
+        self.detections.append(detection)
+
+    def __str__(self):
+        text = 'T' + str(self.id) + ' Detection = ['
+
+        for detection in self.detections:
+            text += str(detection.id) + ', '

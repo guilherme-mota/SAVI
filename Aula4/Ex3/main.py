@@ -40,12 +40,18 @@ def main():
 
     person_detector = cv2.CascadeClassifier('/home/guilherme/workingcopy/opencv-4.5.4/data/haarcascades/haarcascade_fullbody.xml')
 
+    # ------------------------------------------
+    # Initialize variables
+    # ------------------------------------------
+    frame_counter = 0
     detection_counter = 0
+    traker_counter = 0
+    trackers = []
+    iou_threshold = 0.8
 
     # ------------------------------------------
     # Execution
     # ------------------------------------------
-    frame_counter = 0
     while capture.isOpened():  # loop through all frames whil
         ret, image_original = capture.read()  # get a frame, ret will be true or false if getting succeeds
         image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
@@ -64,7 +70,7 @@ def main():
         # Create detections per haard cascade bbox
         # ------------------------------------------
         detections = []
-        for bbox in bboxes:
+        for bbox in bboxes:  # cycle all bboxes
             x1, y1, w, h = bbox
             detection = Detection(x1, y1, w, h, image_gray, detection_counter)
             detection_counter += 1
@@ -72,13 +78,32 @@ def main():
             detections.append(detection)
             # cv2.imshow('detection' + str(detection.id), detection.image)
 
+        # ------------------------------------------------------------------------------------
+        # For each detection, see if there is a tracker to wich it should be associated
+        # ------------------------------------------------------------------------------------
+        if frame_counter == 0:
+            for detection in detections:  # cycle all detections
+                for tracker in trackers:  # cycle all trackers
+                    tracker_bbox = tracker.detections[-1]
+                    iou = detection.computeIOU(tracker_bbox)
+                    print('IOU( T' + str(tracker.id) + ' D' + str(detection.id) + ' ) = ' + str(iou))
+
+                    if iou > iou_threshold:  # associate detection with tracker
+                        tracker.addDetection(detection)
+
         # ------------------------------------------
         # Create tracker foreach detection
         # ------------------------------------------
-        traker_counter = 0
-        for detection in detections:
+        for detection in detections:  # cycle all detections
             tracker = Tracker(detection, traker_counter)
             traker_counter += 1
+            trackers.append(tracker)
+
+        # ------------------------------------------
+        # Draw stuff
+        # ------------------------------------------
+        # Draw Trackers
+        for tracker in trackers:
             tracker.draw(image_gui)
 
         # Display Image Capture with BBoxes
