@@ -69,14 +69,13 @@ def main():
         # ------------------------------------------
         # Create detections per haard cascade bbox
         # ------------------------------------------
-        detections = []
+        detections = []  # list is new for each frame of the video
         for bbox in bboxes:  # cycle all bboxes
             x1, y1, w, h = bbox
             detection = Detection(x1, y1, w, h, image_gray, detection_counter)
             detection_counter += 1
             detection.draw(image_gui)
             detections.append(detection)
-            # cv2.imshow('detection' + str(detection.id), detection.image)
 
         # ------------------------------------------------------------------------------------
         # For each detection, see if there is a tracker to wich it should be associated
@@ -90,11 +89,22 @@ def main():
                 if iou > iou_threshold:  # associate detection with tracker
                     tracker.addDetection(detection)
 
-        # ------------------------------------------
+        # ------------------------------
+        # Track using Template Matching
+        # ------------------------------
+        for tracker in trackers:  # cycle all trackers
+            last_detection_id = tracker.detections[-1].id
+            print(last_detection_id)
+            detections_ids = [d.id for d in detections]
+            if not last_detection_id in detections_ids:
+                print('Tracker ' + str(tracker.id) + ' doing some tracking')
+                tracker.track(image_gray)
+
+        # -------------------------------------------------
         # Create tracker foreach detection at first cycle
-        # ------------------------------------------
-        if frame_counter == 0:
-            for detection in detections:  # cycle all detections
+        # -------------------------------------------------
+        for detection in detections:  # cycle all detections
+            if not detection.assigned_to_tracker:
                 tracker = Tracker(detection, traker_counter)
                 traker_counter += 1
                 trackers.append(tracker)
@@ -105,11 +115,12 @@ def main():
         # Draw Trackers
         for tracker in trackers:
             tracker.draw(image_gui)
+            print(tracker)
 
         # Display Image Capture with BBoxes
         cv2.imshow(window_name, image_gui)
 
-        if cv2.waitKey(25) == ord('q'):
+        if cv2.waitKey(0) == ord('q'):
             break
 
         frame_counter += 1
