@@ -60,11 +60,13 @@ def main():
         if ret == False:
             break
 
+        # Create time stamp
+        stamp = float(capture.get(cv2.CAP_PROP_POS_MSEC))/1000
+
         # ------------------------------------------
         # Detection of persons 
         # ------------------------------------------
         bboxes = person_detector.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=4, minSize=(20,40))
-        print(bboxes)
 
         # ------------------------------------------
         # Create detections per haard cascade bbox
@@ -72,7 +74,7 @@ def main():
         detections = []  # list is new for each frame of the video
         for bbox in bboxes:  # cycle all bboxes
             x1, y1, w, h = bbox
-            detection = Detection(x1, y1, w, h, image_gray, detection_counter)
+            detection = Detection(x1, y1, w, h, image_gray, detection_counter, stamp)
             detection_counter += 1
             detection.draw(image_gui)
             detections.append(detection)
@@ -84,28 +86,33 @@ def main():
             for tracker in trackers:  # cycle all trackers
                 tracker_bbox = tracker.detections[-1]
                 iou = detection.computeIOU(tracker_bbox)
-                print('IOU( T' + str(tracker.id) + ' D' + str(detection.id) + ' ) = ' + str(iou))
+                # print('IOU( T' + str(tracker.id) + ' D' + str(detection.id) + ' ) = ' + str(iou))
 
                 if iou > iou_threshold:  # associate detection with tracker
-                    tracker.addDetection(detection)
+                    tracker.addDetection(detection, image_gray)
 
         # ------------------------------
         # Track using Template Matching
         # ------------------------------
         for tracker in trackers:  # cycle all trackers
             last_detection_id = tracker.detections[-1].id
-            print(last_detection_id)
             detections_ids = [d.id for d in detections]
             if not last_detection_id in detections_ids:
                 print('Tracker ' + str(tracker.id) + ' doing some tracking')
                 tracker.track(image_gray)
 
+        # ------------------------------------------------------------
+        # Deactivate Tracker if no detection for more then t secs
+        # ------------------------------------------------------------
+        for tracker in trackers:  # cycle all trackers
+            tracker.updateTime(stamp)
+
         # -------------------------------------------------
-        # Create tracker foreach detection at first cycle
+        # Create tracker foreach detection
         # -------------------------------------------------
         for detection in detections:  # cycle all detections
             if not detection.assigned_to_tracker:
-                tracker = Tracker(detection, traker_counter)
+                tracker = Tracker(detection, traker_counter, image_gray)
                 traker_counter += 1
                 trackers.append(tracker)
 
@@ -115,12 +122,12 @@ def main():
         # Draw Trackers
         for tracker in trackers:
             tracker.draw(image_gui)
-            print(tracker)
+            # print(tracker)
 
         # Display Image Capture with BBoxes
         cv2.imshow(window_name, image_gui)
 
-        if cv2.waitKey(0) == ord('q'):
+        if cv2.waitKey(100) == ord('q'):
             break
 
         frame_counter += 1
