@@ -12,6 +12,8 @@ def main():
         # Take each frame
         _, frame = cap.read()
 
+        # cv.imshow('frame',frame)
+
         # Convert BGR to HSV
         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
