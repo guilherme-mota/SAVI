@@ -3,7 +3,6 @@
 #-----------
 # Imports
 #-----------
-from curses.textpad import rectangle
 import os
 import cv2
 import numpy as np
@@ -43,7 +42,7 @@ def main():
 
     # Find images encodings
     encode_list = findEncodings(images)
-    print('Endoding Complete!')
+    print('Encoding Complete!')
 
     # Start Video Capture
     capture = cv2.VideoCapture(0)
