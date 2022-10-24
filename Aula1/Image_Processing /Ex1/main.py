@@ -6,13 +6,13 @@ import numpy as np
 import cv2 as cv
 
 def main():
-    cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(cv.CAP_V4L2)
 
     while(1):
         # Take each frame
         _, frame = cap.read()
 
-        # cv.imshow('frame',frame)
+        cv.imshow('frame',frame)
 
         # Convert BGR to HSV
         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
