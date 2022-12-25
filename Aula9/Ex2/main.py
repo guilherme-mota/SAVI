@@ -35,16 +35,26 @@ def main():
     # Initialization
     #-----------------
     print("Load a ply point cloud, print it, and render it")
-    ply_point_cloud = o3d.data.PLYPointCloud()
+    point_cloud = o3d.io.read_point_cloud('/home/guilherme/savi_22-23/Parte09/data/Factory/factory.ply')
     
 
     #-----------------
     # Execution
     #-----------------
-    point_cloud = o3d.io.read_point_cloud('/home/guilherme/savi_22-23/Parte09/data/Factory/factory.ply')
-    print(point_cloud)
-    print(np.asarray(point_cloud.points))
-    o3d.visualization.draw_geometries([point_cloud],
+    print('Starting plane detection')
+    plane_model, inlier_idxs = point_cloud.segment_plane(distance_threshold=0.3, ransac_n=3, num_iterations=150)
+    [a, b, c, d] = plane_model
+    print('Plane equation: ' + str(a) + ' x + ' + str(b) + ' y + ' + str(c) + ' z + ' + str(d) + ' = 0')
+
+    inlier_cloud = point_cloud.select_by_index(inlier_idxs)
+    inlier_cloud.paint_uniform_color([1,0,0])  # paints the plane in red
+    outlier_cloud = point_cloud.select_by_index(inlier_idxs, invert=True)
+
+
+    #-------------------
+    # Visualization
+    #-------------------
+    o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud],
                                         zoom = view['trajectory'][0]['zoom'],
                                         front = view['trajectory'][0]['front'],
                                         lookat = view['trajectory'][0]['lookat'],
@@ -54,6 +64,7 @@ def main():
     #-----------------
     # Termination
     #-----------------
+    o3d.io.write_point_cloud('./factory_without_ground.ply', outlier_cloud, write_ascii=False, compressed=False, print_progress=False)
     
 
 if __name__ == '__main__':
