@@ -34,7 +34,7 @@ def main():
 
     # Variables of the process
     learning_rate = 0.01
-    maximum_num_epochs = 50
+    maximum_num_epochs = 500
     termination_loss_threshold = 7
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
